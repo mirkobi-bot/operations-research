@@ -1,0 +1,27 @@
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum
+
+# Creazione del problema
+problema = LpProblem("ProblemaLineareIntero", LpMaximize)
+
+# Definizione delle variabili intere
+x1 = LpVariable("x1", lowBound=0, cat='Integer')
+x2 = LpVariable("x2", lowBound=0, cat='Integer')
+
+# Definizione della funzione obiettivo
+problema += 5*x1 + 8*x2, "FunzioneObiettivo"
+
+# Aggiunta dei vincoli
+problema += x1 + x2 <= 6, "Vincolo1"
+problema += 5*x1 + 9*x2 <= 45, "Vincolo2"
+
+# Risoluzione del problema
+problema.solve()
+
+# Stampa della soluzione
+if problema.status == 1:  # Ottimale
+    print("Soluzione ottima:")
+    print(f"x1 = {x1.value()}")
+    print(f"x2 = {x2.value()}")
+    print(f"Valore ottimo della funzione obiettivo: {problema.objective.value()}")
+else:
+    print("Il problema non ha soluzione ottima o è impossibile.")
