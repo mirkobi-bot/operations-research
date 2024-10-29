@@ -1,0 +1,30 @@
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpBinary
+
+# Creazione del problema
+problema = LpProblem("ProblemaLineareBinario", LpMaximize)
+
+# Definizione delle variabili binarie
+x1 = LpVariable("x1", 0, 1, LpBinary)
+x2 = LpVariable("x2", 0, 1, LpBinary)
+x3 = LpVariable("x3", 0, 1, LpBinary)
+x4 = LpVariable("x4", 0, 1, LpBinary)
+
+# Definizione della funzione obiettivo
+problema += 15*x1 + 12*x2 + 4*x3 + 2*x4, "FunzioneObiettivo"
+
+# Aggiunta del vincolo
+problema += 8*x1 + 5*x2 + 3*x3 + 2*x4 <= 10, "Vincolo"
+
+# Risoluzione del problema
+problema.solve()
+
+# Stampa della soluzione
+if problema.status == 1:  # Ottimale
+    print("Soluzione ottima:")
+    print(f"x1 = {x1.value()}")
+    print(f"x2 = {x2.value()}")
+    print(f"x3 = {x3.value()}")
+    print(f"x4 = {x4.value()}")
+    print(f"Valore ottimo della funzione obiettivo: {problema.objective.value()}")
+else:
+    print("Il problema non ha soluzione ottima o è impossibile.")
