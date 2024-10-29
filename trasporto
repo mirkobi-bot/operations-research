@@ -1,0 +1,61 @@
+from pulp import *
+
+# Inizializzazione del problema assegnando un nome e la direzione dell'ottimizzazione
+model = LpProblem("TrasportoBottiglie", LpMinimize)
+
+# Set e parametri
+indici_impianti = [1,2,3,4]
+indici_ristoranti = [1,2,3]
+capacita_prod = {1: 175, 2: 190, 3: 180, 4: 165}
+domanda = {1: 160, 2: 175, 3: 180}
+costi = {
+    1: {1: 0.4, 2: 0.3, 3: 0.2},
+    2: {1: 0.2, 2: 0.3, 3: 0.5},
+    3: {1: 0.1, 2: 0.6, 3: 0.2},
+    4: {1: 0.5, 2: 0.1, 3: 0.3},
+}
+
+# Variabili #LpContinuous o LpInteger?
+x = LpVariable.dicts("x", (indici_impianti, indici_ristoranti), 0, None, LpContinuous)
+
+# Funzione obiettivo
+model += lpSum(x[i][j]*costi[i][j] for i in indici_impianti for j in indici_ristoranti)
+
+#costo impianto 1 inferiore a 1/4 del costo totale
+#model += lpSum(costi[1][j] * x[1][j] for j in indici_ristoranti) <= 0.25 * lpSum(costi[i][j] * x[i][j] for j in indici_ristoranti for i in indici_impianti)
+
+#ciascun impianto si faccia carico di almeno il 15% delle spedizioni
+#for i in indici_impianti:
+    #model += lpSum(x[i][j] for j in indici_ristoranti) >= 0.15 * lpSum(x[i][j] for i in indici_impianti for j in indici_ristoranti)
+
+# Vincoli
+#vincolo offerta
+for i in indici_impianti:
+    model += lpSum(x[i][j] for j in indici_ristoranti) <= capacita_prod[i]
+    
+#vincolo domanda
+for j in indici_ristoranti:
+    model += lpSum(x[i][j] for i in indici_impianti) >= domanda[j]
+ 
+# Chiamata al solver
+model.solve()
+
+if model.status == 1:
+    print("Soluzione ammissibile!\n")
+
+    # Stampa soluzione ottima trovata
+    for v in model.variables():
+        print(v.name, " = ", v.varValue)
+        
+    # Valore della funzione obiettivo
+    print("Costo minimo per il trasporto = {}".format(round(value(model.objective),2)))
+
+    #per sapere quanta acqua è trasportata da ogni impianto
+    for i in indici_impianti:
+        produzione = 0;
+        for j in indici_ristoranti:
+            produzione = produzione + x[i][j].varValue
+        print("L'impianto " + str(i) + " produce " + str(produzione) + " bottiglie d'acqua.")
+else:
+    if model.status == -1:
+        print("Non c'è soluzione!\n")
